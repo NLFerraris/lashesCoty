@@ -1,24 +1,29 @@
 class Servicio {
-    constructor(id, nombre, duracionMinutos, precio) {
+    constructor(id, nombre, duracionMinutos, precio, porcentajeSenia = 50) {
         this.id = id;
         this.nombre = nombre;
         this.duracionMinutos = duracionMinutos;
         this.precio = precio;
+        this.porcentajeSenia = porcentajeSenia;
+    }
+
+    obtenerMontoSenia() {
+        return Math.round((this.precio * this.porcentajeSenia) / 100);
     }
 }
 
 class Turno {
-    constructor(id, clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos) {
+    constructor(id, clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos, estado = "PENDIENTE_SEÑA") {
         this.id = id;
         this.clienteNombre = clienteNombre;
         this.clienteTelefono = clienteTelefono;
-        this.servicio = servicio; // Objeto de tipo Servicio
-        this.fecha = fecha;       // Formato "YYYY-MM-DD"
-        this.horaInicio = horaInicioMinutos; // Ej: 540 = 09:00 hs
+        this.servicio = servicio;
+        this.fecha = fecha;
+        this.horaInicio = horaInicioMinutos;
         this.horaFin = horaInicioMinutos + servicio.duracionMinutos;
+        this.estado = estado; // "PENDIENTE_SEÑA" | "CONFIRMADO"
     }
 
-    // Método auxiliar para verificar si este turno se pisa con otro rango horario
     seSuperponeCon(inicioOtro, finOtro) {
         return this.horaInicio < finOtro && this.horaFin > inicioOtro;
     }
@@ -26,24 +31,19 @@ class Turno {
 
 class Agenda {
     constructor(horaApertura = 540, horaCierre = 1140, intervaloMinutos = 30) {
-        // 540 min = 09:00 hs | 1140 min = 19:00 hs
         this.horaApertura = horaApertura;
         this.horaCierre = horaCierre;
         this.intervaloMinutos = intervaloMinutos;
         this.turnos = this.cargarTurnos();
     }
 
-    // Genera un array de minutos libres para una fecha y servicio dados
     obtenerHorariosDisponibles(fecha, servicio) {
         const disponibles = [];
         const turnosDelDia = this.turnos.filter(t => t.fecha === fecha);
 
         for (let inicio = this.horaApertura; inicio + servicio.duracionMinutos <= this.horaCierre; inicio += this.intervaloMinutos) {
             const fin = inicio + servicio.duracionMinutos;
-            
-            // Verifica si algún turno del día se superpone con este bloque [inicio, fin]
             const estaOcupado = turnosDelDia.some(turno => turno.seSuperponeCon(inicio, fin));
-            
             if (!estaOcupado) {
                 disponibles.push(inicio);
             }
@@ -51,7 +51,6 @@ class Agenda {
         return disponibles;
     }
 
-    // Registra un nuevo turno validando disponibilidad y lo persiste
     agendarTurno(clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos) {
         const disponibles = this.obtenerHorariosDisponibles(fecha, servicio);
         if (!disponibles.includes(horaInicioMinutos)) {
@@ -64,12 +63,21 @@ class Agenda {
             clienteTelefono,
             servicio,
             fecha,
-            horaInicioMinutos
+            horaInicioMinutos,
+            "PENDIENTE_SEÑA"
         );
 
         this.turnos.push(nuevoTurno);
         this.guardarTurnos();
         return nuevoTurno;
+    }
+
+    confirmarSenia(id) {
+        const turno = this.turnos.find(t => t.id === id);
+        if (turno) {
+            turno.estado = "CONFIRMADO";
+            this.guardarTurnos();
+        }
     }
 
     eliminarTurno(id) {
@@ -84,15 +92,18 @@ class Agenda {
     cargarTurnos() {
         const data = localStorage.getItem('lashesCoty_turnos');
         if (!data) return [];
-        // Rehidratamos los objetos planos del JSON a instancias reales de Turno y Servicio
         return JSON.parse(data).map(t => {
-            const srv = new Servicio(t.servicio.id, t.servicio.nombre, t.servicio.duracionMinutos, t.servicio.precio);
-            const turno = new Turno(t.id, t.clienteNombre, t.clienteTelefono, srv, t.fecha, t.horaInicio);
-            return turno;
+            const srv = new Servicio(
+                t.servicio.id,
+                t.servicio.nombre,
+                t.servicio.duracionMinutos,
+                t.servicio.precio,
+                t.servicio.porcentajeSenia ?? 50
+            );
+            return new Turno(t.id, t.clienteNombre, t.clienteTelefono, srv, t.fecha, t.horaInicio, t.estado || "PENDIENTE_SEÑA");
         });
     }
 
-    // Método estático utilitario para convertir minutos (ej: 570) a texto ("09:30")
     static formatearHora(minutos) {
         const hrs = Math.floor(minutos / 60).toString().padStart(2, '0');
         const mins = (minutos % 60).toString().padStart(2, '0');

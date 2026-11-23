@@ -1,0 +1,22 @@
+# Lashes Coty — Sistema de Reserva de Turnos
+
+Aplicación web para la gestión y reserva de turnos de un estudio de estética y pestañas, desarrollada con enfoque en **Programación Orientada a Objetos (POO)** y resolución algorítmica de disponibilidad horaria.
+
+🔗 **Demo en vivo:** [Ver aplicación desplegada](https://nlferraris.github.io/lashesCoty/)
+
+## Funcionalidades Principales
+- **Cálculo dinámico de disponibilidad:** Algoritmo que evalúa la duración de cada servicio frente a la jornada laboral y los turnos ya agendados para ofrecer únicamente bloques horarios libres sin superposiciones.
+- **Catálogo de servicios:** Selección de tratamientos con duración estimada y tarifa actualizada.
+- **Gestión de agenda diaria:** Visualización cronológica de reservas del día, contador de turnos y cancelación con liberación automática del bloque horario.
+- **Persistencia local:** Almacenamiento en `localStorage` con serialización y rehidratación de instancias de clase (`Servicio` y `Turno`).
+
+## Arquitectura y Diseño Técnico
+El proyecto separa la lógica de dominio de la manipulación del DOM:
+- `models.js`: Define las entidades `Servicio`, `Turno` (con validación de solapamiento de intervalos `seSuperponeCon`) y `Agenda` (motor de búsqueda de slots disponibles).
+- `app.js`: Controlador de interfaz que conecta los eventos del formulario con el modelo de dominio.
+- `index.html` & `styles.css`: Interfaz responsiva desarrollada con CSS Grid y Flexbox.
+
+## Cómo ejecutarlo localmente
+1. Clonar el repositorio:
+   ```bash
+   git clone [https://github.com/NLFerraris/lashesCoty.git](https://github.com/NLFerraris/lashesCoty.git)

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lashes Coty | Reserva de Turnos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Lashes Coty</h1>
+        <p>Estudio de Pestañas & Cejas — Reserva Online</p>
+    </header>
+
+    <main class="container">
+        <!-- Sección 1: Formulario de Reserva -->
+        <section class="card">
+            <h2>1. Reservá tu turno</h2>
+            <form id="booking-form">
+                <div class="form-group">
+                    <label for="servicio">Servicio:</label>
+                    <select id="servicio" required></select>
+                </div>
+
+                <div class="form-group">
+                    <label for="fecha">Fecha:</label>
+                    <input type="date" id="fecha" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Horarios disponibles:</label>
+                    <div id="horarios-container" class="slots-grid">
+                        <p class="hint">Seleccioná un servicio y una fecha para ver los horarios.</p>
+                    </div>
+                    <input type="hidden" id="hora-seleccionada" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="nombre">Tu Nombre y Apellido:</label>
+                    <input type="text" id="nombre" placeholder="Ej: Aldana Pérez" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">WhatsApp / Teléfono:</label>
+                    <input type="tel" id="telefono" placeholder="Ej: 11 2345-6789" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Confirmar Reserva</button>
+            </form>
+        </section>
+
+        <!-- Sección 2: Panel de Turnos Agendados -->
+        <section class="card">
+            <div class="panel-header">
+                <h2>2. Agenda del Día</h2>
+                <span id="contador-turnos" class="badge">0 turnos</span>
+            </div>
+            <div id="lista-turnos" class="appointments-list">
+                <p class="hint">No hay turnos agendados para esta fecha.</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Primero cargamos las clases del modelo y luego la lógica de interfaz -->
+    <script src="models.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

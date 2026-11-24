@@ -12,7 +12,7 @@
         <p>Estudio de Pestañas & Cejas — Reserva Online</p>
     </header>
 
-    <main class="container">
+    <main class="container container-single">
         <!-- Sección 1: Formulario de Reserva (Mobile-First) -->
         <section class="card">
             <h2>1. Reservá tu turno</h2>
@@ -66,20 +66,8 @@
                 </button>
             </form>
         </section>
-
-        <!-- Sección 2: Vista previa de Agenda (luego irá a admin.html) -->
-        <section class="card">
-            <div class="panel-header">
-                <h2>2. Agenda del Día</h2>
-                <span id="contador-turnos" class="badge">0 turnos</span>
-            </div>
-            <div id="lista-turnos" class="appointments-list">
-                <p class="hint">No hay turnos agendados para esta fecha.</p>
-            </div>
-        </section>
     </main>
 
-    <script src="models.js"></script>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

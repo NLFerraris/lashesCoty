@@ -1,12 +1,12 @@
-// Configuración del estudio (editable en un solo lugar)
-const CONFIG_ESTUDIO = {
+import { Servicio, Agenda } from "./models.js";
+
+export const CONFIG_ESTUDIO = {
     nombre: "Lashes Coty",
-    whatsappNumero: "5491138219738", // Formato internacional sin + ni espacios (549 + código de área + número)
+    whatsappNumero: "5491138219738",
     aliasBancario: "LASHES.COTY.MP"
 };
 
-// 1. Catálogo de servicios (incluye 50% de seña por defecto)
-const serviciosCatalogo = [
+export const serviciosCatalogo = [
     new Servicio(1, "Extensiones Clásicas (Pelo por Pelo)", 90, 18000, 50),
     new Servicio(2, "Volumen Ruso / Mega Volumen", 120, 24000, 50),
     new Servicio(3, "Lifting de Pestañas + Tinte", 60, 14000, 50),
@@ -16,19 +16,16 @@ const serviciosCatalogo = [
 
 const agenda = new Agenda(540, 1140, 30);
 
-// Referencias al DOM
 const selectServicio = document.getElementById("servicio");
 const inputFecha = document.getElementById("fecha");
 const horariosContainer = document.getElementById("horarios-container");
 const inputHoraSeleccionada = document.getElementById("hora-seleccionada");
 const bookingForm = document.getElementById("booking-form");
-const listaTurnos = document.getElementById("lista-turnos");
-const contadorTurnos = document.getElementById("contador-turnos");
 const montoSeniaEl = document.getElementById("monto-senia");
 const aliasTextoEl = document.getElementById("alias-texto");
 const btnCopiarAlias = document.getElementById("btn-copiar-alias");
 
-function inicializarApp() {
+async function inicializarApp() {
     aliasTextoEl.textContent = CONFIG_ESTUDIO.aliasBancario;
 
     serviciosCatalogo.forEach(servicio => {
@@ -43,7 +40,7 @@ function inicializarApp() {
     inputFecha.value = hoy;
 
     actualizarMontoSenia();
-    actualizarVista();
+    await renderizarHorarios();
 }
 
 function obtenerServicioSeleccionado() {
@@ -58,13 +55,11 @@ function actualizarMontoSenia() {
     }
 }
 
-// Botón Copiar Alias compatible con celulares y navegador de Instagram
 btnCopiarAlias.addEventListener("click", async () => {
     const alias = CONFIG_ESTUDIO.aliasBancario;
     try {
         await navigator.clipboard.writeText(alias);
     } catch {
-        // Fallback para navegadores embebidos restrictivos
         const tempInput = document.createElement("input");
         tempInput.value = alias;
         document.body.appendChild(tempInput);
@@ -81,15 +76,16 @@ btnCopiarAlias.addEventListener("click", async () => {
     }, 2000);
 });
 
-function renderizarHorarios() {
-    horariosContainer.innerHTML = "";
+async function renderizarHorarios() {
+    horariosContainer.innerHTML = `<p class="hint">Cargando horarios disponibles...</p>`;
     inputHoraSeleccionada.value = "";
 
     const servicio = obtenerServicioSeleccionado();
     const fecha = inputFecha.value;
     if (!servicio || !fecha) return;
 
-    const disponibles = agenda.obtenerHorariosDisponibles(fecha, servicio);
+    const disponibles = await agenda.obtenerHorariosDisponibles(fecha, servicio);
+    horariosContainer.innerHTML = "";
 
     if (disponibles.length === 0) {
         horariosContainer.innerHTML = `<p class="hint">No quedan horarios disponibles para esta fecha y duración.</p>`;
@@ -110,63 +106,6 @@ function renderizarHorarios() {
 
         horariosContainer.appendChild(btn);
     });
-}
-
-function renderizarAgendaDelDia() {
-    const fecha = inputFecha.value;
-    const turnosDelDia = agenda.turnos
-        .filter(t => t.fecha === fecha)
-        .sort((a, b) => a.horaInicio - b.horaInicio);
-
-    contadorTurnos.textContent = `${turnosDelDia.length} ${turnosDelDia.length === 1 ? 'turno' : 'turnos'}`;
-    listaTurnos.innerHTML = "";
-
-    if (turnosDelDia.length === 0) {
-        listaTurnos.innerHTML = `<p class="hint">No hay turnos agendados para esta fecha.</p>`;
-        return;
-    }
-
-    turnosDelDia.forEach(turno => {
-        const item = document.createElement("div");
-        item.className = "appointment-item";
-
-        const horaInicioTexto = Agenda.formatearHora(turno.horaInicio);
-        const horaFinTexto = Agenda.formatearHora(turno.horaFin);
-        const esConfirmado = turno.estado === "CONFIRMADO";
-
-        item.innerHTML = `
-            <div class="appointment-info">
-                <strong>${horaInicioTexto} - ${horaFinTexto} | ${turno.clienteNombre}</strong>
-                <span>${turno.servicio.nombre} • Tel: ${turno.clienteTelefono}</span>
-                <span class="status-pill ${esConfirmado ? 'status-confirmed' : 'status-pending'}">
-                    ${esConfirmado ? 'Seña Confirmada' : 'Pendiente de Seña'}
-                </span>
-            </div>
-            <div class="item-actions">
-                ${!esConfirmado ? `<button class="btn-confirm-deposit" data-id="${turno.id}">Aprobar Seña</button>` : ''}
-                <button class="btn-cancel" data-id="${turno.id}">Cancelar</button>
-            </div>
-        `;
-
-        if (!esConfirmado) {
-            item.querySelector(".btn-confirm-deposit").addEventListener("click", () => {
-                agenda.confirmarSenia(turno.id);
-                actualizarVista();
-            });
-        }
-
-        item.querySelector(".btn-cancel").addEventListener("click", () => {
-            agenda.eliminarTurno(turno.id);
-            actualizarVista();
-        });
-
-        listaTurnos.appendChild(item);
-    });
-}
-
-function actualizarVista() {
-    renderizarHorarios();
-    renderizarAgendaDelDia();
 }
 
 function formatearFechaLegible(fechaISO) {
@@ -196,9 +135,9 @@ selectServicio.addEventListener("change", () => {
     renderizarHorarios();
 });
 
-inputFecha.addEventListener("change", actualizarVista);
+inputFecha.addEventListener("change", renderizarHorarios);
 
-bookingForm.addEventListener("submit", (e) => {
+bookingForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const horaSeleccionada = inputHoraSeleccionada.value;
@@ -207,20 +146,28 @@ bookingForm.addEventListener("submit", (e) => {
         return;
     }
 
+    const btnSubmit = bookingForm.querySelector("button[type='submit']");
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = "Reservando turno...";
+
     const servicio = obtenerServicioSeleccionado();
     const fecha = inputFecha.value;
     const nombre = document.getElementById("nombre").value.trim();
     const telefono = document.getElementById("telefono").value.trim();
 
     try {
-        const turnoCreado = agenda.agendarTurno(nombre, telefono, servicio, fecha, parseInt(horaSeleccionada));
+        const turnoCreado = await agenda.agendarTurno(nombre, telefono, servicio, fecha, parseInt(horaSeleccionada));
         bookingForm.reset();
         inputFecha.value = fecha;
         actualizarMontoSenia();
-        actualizarVista();
+        await renderizarHorarios();
         abrirWhatsAppComprobante(turnoCreado);
     } catch (error) {
         alert(error.message);
+        await renderizarHorarios();
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = "Reservar y Enviar Comprobante por WhatsApp";
     }
 });
 

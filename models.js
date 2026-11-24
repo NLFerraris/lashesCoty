@@ -1,4 +1,8 @@
-class Servicio {
+import { 
+    db, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, onSnapshot 
+} from "./firebase-config.js";
+
+export class Servicio {
     constructor(id, nombre, duracionMinutos, precio, porcentajeSenia = 50) {
         this.id = id;
         this.nombre = nombre;
@@ -12,7 +16,7 @@ class Servicio {
     }
 }
 
-class Turno {
+export class Turno {
     constructor(id, clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos, estado = "PENDIENTE_SEÑA") {
         this.id = id;
         this.clienteNombre = clienteNombre;
@@ -21,7 +25,7 @@ class Turno {
         this.fecha = fecha;
         this.horaInicio = horaInicioMinutos;
         this.horaFin = horaInicioMinutos + servicio.duracionMinutos;
-        this.estado = estado; // "PENDIENTE_SEÑA" | "CONFIRMADO"
+        this.estado = estado;
     }
 
     seSuperponeCon(inicioOtro, finOtro) {
@@ -29,17 +33,53 @@ class Turno {
     }
 }
 
-class Agenda {
+export class Agenda {
     constructor(horaApertura = 540, horaCierre = 1140, intervaloMinutos = 30) {
         this.horaApertura = horaApertura;
         this.horaCierre = horaCierre;
         this.intervaloMinutos = intervaloMinutos;
-        this.turnos = this.cargarTurnos();
+        this.turnosRef = collection(db, "turnos");
     }
 
-    obtenerHorariosDisponibles(fecha, servicio) {
+    // Consulta en Firestore los turnos de una fecha específica
+    async obtenerTurnosPorFecha(fecha) {
+        const q = query(this.turnosRef, where("fecha", "==", fecha));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            const srv = new Servicio(
+                data.servicio.id,
+                data.servicio.nombre,
+                data.servicio.duracionMinutos,
+                data.servicio.precio,
+                data.servicio.porcentajeSenia ?? 50
+            );
+            return new Turno(docSnap.id, data.clienteNombre, data.clienteTelefono, srv, data.fecha, data.horaInicio, data.estado);
+        });
+    }
+
+    // Escucha cambios en tiempo real para el panel de administración
+    escucharTurnosPorFecha(fecha, callback) {
+        const q = query(this.turnosRef, where("fecha", "==", fecha));
+        return onSnapshot(q, (snapshot) => {
+            const turnos = snapshot.docs.map(docSnap => {
+                const data = docSnap.data();
+                const srv = new Servicio(
+                    data.servicio.id,
+                    data.servicio.nombre,
+                    data.servicio.duracionMinutos,
+                    data.servicio.precio,
+                    data.servicio.porcentajeSenia ?? 50
+                );
+                return new Turno(docSnap.id, data.clienteNombre, data.clienteTelefono, srv, data.fecha, data.horaInicio, data.estado);
+            });
+            callback(turnos);
+        });
+    }
+
+    async obtenerHorariosDisponibles(fecha, servicio) {
         const disponibles = [];
-        const turnosDelDia = this.turnos.filter(t => t.fecha === fecha);
+        const turnosDelDia = await this.obtenerTurnosPorFecha(fecha);
 
         for (let inicio = this.horaApertura; inicio + servicio.duracionMinutos <= this.horaCierre; inicio += this.intervaloMinutos) {
             const fin = inicio + servicio.duracionMinutos;
@@ -51,57 +91,42 @@ class Agenda {
         return disponibles;
     }
 
-    agendarTurno(clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos) {
-        const disponibles = this.obtenerHorariosDisponibles(fecha, servicio);
+    async agendarTurno(clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos) {
+        // Re-validación contra la nube justo antes de escribir
+        const disponibles = await this.obtenerHorariosDisponibles(fecha, servicio);
         if (!disponibles.includes(horaInicioMinutos)) {
-            throw new Error("El horario seleccionado ya no se encuentra disponible.");
+            throw new Error("¡Ups! Alguien acaba de reservar ese horario hace unos segundos. Por favor elegí otro.");
         }
 
-        const nuevoTurno = new Turno(
-            Date.now(),
+        const nuevoTurnoData = {
             clienteNombre,
             clienteTelefono,
-            servicio,
+            servicio: {
+                id: servicio.id,
+                nombre: servicio.nombre,
+                duracionMinutos: servicio.duracionMinutos,
+                precio: servicio.precio,
+                porcentajeSenia: servicio.porcentajeSenia
+            },
             fecha,
-            horaInicioMinutos,
-            "PENDIENTE_SEÑA"
-        );
+            horaInicio: horaInicioMinutos,
+            horaFin: horaInicioMinutos + servicio.duracionMinutos,
+            estado: "PENDIENTE_SEÑA",
+            creadoEn: new Date().toISOString()
+        };
 
-        this.turnos.push(nuevoTurno);
-        this.guardarTurnos();
-        return nuevoTurno;
+        const docRef = await addDoc(this.turnosRef, nuevoTurnoData);
+        return new Turno(docRef.id, clienteNombre, clienteTelefono, servicio, fecha, horaInicioMinutos, "PENDIENTE_SEÑA");
     }
 
-    confirmarSenia(id) {
-        const turno = this.turnos.find(t => t.id === id);
-        if (turno) {
-            turno.estado = "CONFIRMADO";
-            this.guardarTurnos();
-        }
+    async confirmarSenia(id) {
+        const turnoDoc = doc(db, "turnos", id);
+        await updateDoc(turnoDoc, { estado: "CONFIRMADO" });
     }
 
-    eliminarTurno(id) {
-        this.turnos = this.turnos.filter(t => t.id !== id);
-        this.guardarTurnos();
-    }
-
-    guardarTurnos() {
-        localStorage.setItem('lashesCoty_turnos', JSON.stringify(this.turnos));
-    }
-
-    cargarTurnos() {
-        const data = localStorage.getItem('lashesCoty_turnos');
-        if (!data) return [];
-        return JSON.parse(data).map(t => {
-            const srv = new Servicio(
-                t.servicio.id,
-                t.servicio.nombre,
-                t.servicio.duracionMinutos,
-                t.servicio.precio,
-                t.servicio.porcentajeSenia ?? 50
-            );
-            return new Turno(t.id, t.clienteNombre, t.clienteTelefono, srv, t.fecha, t.horaInicio, t.estado || "PENDIENTE_SEÑA");
-        });
+    async eliminarTurno(id) {
+        const turnoDoc = doc(db, "turnos", id);
+        await deleteDoc(turnoDoc);
     }
 
     static formatearHora(minutos) {

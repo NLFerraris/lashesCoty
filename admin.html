@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Lashes Coty</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <h1>Panel de Gestión — Lashes Coty</h1>
+        <p>Administración de Turnos y Señas en Tiempo Real</p>
+    </header>
+
+    <main class="container container-single">
+        <section class="card">
+            <div class="form-group">
+                <label for="admin-fecha">Seleccionar fecha a revisar:</label>
+                <input type="date" id="admin-fecha">
+            </div>
+
+            <div class="panel-header">
+                <h2>Turnos Agendados</h2>
+                <span id="contador-turnos" class="badge">0 turnos</span>
+            </div>
+
+            <div id="lista-turnos" class="appointments-list">
+                <p class="hint">Cargando turnos...</p>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

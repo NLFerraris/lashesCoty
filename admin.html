@@ -2,31 +2,236 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Lashes Coty</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Panel Admin | Lashes Coty</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos del Panel de Administración */
+        .admin-tabs {
+            display: flex;
+            gap: 0.4rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .tab-btn {
+            background: #fff;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.6rem 1rem;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            background: #111111;
+            color: #ffffff;
+            border-color: #111111;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.7rem;
+        }
+        .admin-list-item {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem;
+            margin-bottom: 0.7rem;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .day-row {
+            display: grid;
+            grid-template-columns: 110px 1fr 1fr;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.7rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: #f5f5f5;
+        }
+        .btn-dark {
+            background: #111111;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
-        <h1>Panel de Gestión — Lashes Coty</h1>
-        <p>Administración de Turnos y Señas en Tiempo Real</p>
+        <h1>Lashes Coty — Admin</h1>
+        <p>Gestión de Turnos, Precios, Productos y Agenda</p>
     </header>
 
     <main class="container container-single">
-        <section class="card">
+        <!-- Navegación por Pestañas -->
+        <nav class="admin-tabs">
+            <button class="tab-btn active" data-tab="tab-turnos">📅 Turnos</button>
+            <button class="tab-btn" data-tab="tab-servicios">✨ Servicios</button>
+            <button class="tab-btn" data-tab="tab-productos">🛍️ Productos</button>
+            <button class="tab-btn" data-tab="tab-horarios">⚙️ Horarios y Config</button>
+        </nav>
+
+        <!-- PESTAÑA 1: TURNOS DEL DÍA -->
+        <section id="tab-turnos" class="tab-panel active card">
             <div class="form-group">
-                <label for="admin-fecha">Seleccionar fecha a revisar:</label>
+                <label for="admin-fecha">Seleccionar fecha:</label>
                 <input type="date" id="admin-fecha">
             </div>
-
             <div class="panel-header">
-                <h2>Turnos Agendados</h2>
+                <h2>Turnos del Día</h2>
                 <span id="contador-turnos" class="badge">0 turnos</span>
             </div>
-
             <div id="lista-turnos" class="appointments-list">
                 <p class="hint">Cargando turnos...</p>
             </div>
+        </section>
+
+        <!-- PESTAÑA 2: SERVICIOS Y PRECIOS -->
+        <section id="tab-servicios" class="tab-panel card">
+            <h2 id="form-servicio-titulo">Agregar / Editar Servicio</h2>
+            <form id="form-servicio">
+                <input type="hidden" id="srv-id">
+                <div class="form-group">
+                    <label>Nombre del servicio:</label>
+                    <input type="text" id="srv-nombre" placeholder="Ej: Volumen Ruso Art" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Categoría:</label>
+                        <select id="srv-categoria">
+                            <option value="LASHES">Lashes</option>
+                            <option value="EFECTOS">Efectos</option>
+                            <option value="ADICIONALES">Adicionales / Remoción</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duración (minutos):</label>
+                        <input type="number" id="srv-duracion" value="120" step="15" min="15" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Precio Colocación ($):</label>
+                        <input type="number" id="srv-precio-normal" placeholder="28000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Servis ($ - opcional):</label>
+                        <input type="number" id="srv-precio-servis" placeholder="26000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción breve:</label>
+                    <input type="text" id="srv-descripcion" placeholder="Efecto natural con abanicos livianos...">
+                </div>
+                <button type="submit" class="btn-dark">Guardar Servicio</button>
+                <button type="button" id="btn-cancelar-edicion-srv" class="btn-sm" style="display:none; width:100%; margin-top:0.4rem;">Cancelar edición</button>
+            </form>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+            <h2>Catálogo Actual</h2>
+            <div id="lista-servicios-admin"></div>
+        </section>
+
+        <!-- PESTAÑA 3: PRODUCTOS A LA VENTA -->
+        <section id="tab-productos" class="tab-panel card">
+            <h2>Agregar Producto</h2>
+            <form id="form-producto">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Marca:</label>
+                        <input type="text" id="prod-marca" placeholder="Ej: Lash Care" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio ($):</label>
+                        <input type="number" id="prod-precio" placeholder="8500" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nombre del producto:</label>
+                    <input type="text" id="prod-nombre" placeholder="Ej: Espuma Limpiadora Lash Shampoo" required>
+                </div>
+                <div class="form-group">
+                    <label>URL de imagen (opcional):</label>
+                    <input type="text" id="prod-imagen" placeholder="https://...">
+                </div>
+                <button type="submit" class="btn-dark">Agregar Producto</button>
+            </form>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+            <h2>Productos Publicados</h2>
+            <div id="lista-productos-admin"></div>
+        </section>
+
+        <!-- PESTAÑA 4: HORARIOS, BLOQUEOS Y CONFIGURACIÓN -->
+        <section id="tab-horarios" class="tab-panel card">
+            <h2>Datos y Seña</h2>
+            <form id="form-config">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Monto Seña Fija ($):</label>
+                        <input type="number" id="cfg-senia" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Recargo Transferencia ($):</label>
+                        <input type="number" id="cfg-recargo" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Alias Bancario / MP:</label>
+                        <input type="text" id="cfg-alias" required>
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp (con 549):</label>
+                        <input type="text" id="cfg-whatsapp" required>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:1.2rem;">Horarios Semanales</h2>
+                <div id="horarios-semana-container"></div>
+
+                <button type="submit" class="btn-dark" style="margin-top:1rem;">Guardar Configuración</button>
+            </form>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+            <h2>Bloquear Fecha o Feriado</h2>
+            <form id="form-bloqueo">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Fecha a bloquear:</label>
+                        <input type="date" id="bloq-fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Motivo:</label>
+                        <input type="text" id="bloq-motivo" placeholder="Ej: Franco / Feriado" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-dark">Bloquear Día Completo</button>
+            </form>
+            <div id="lista-bloqueos-admin" style="margin-top:1rem;"></div>
         </section>
     </main>
 

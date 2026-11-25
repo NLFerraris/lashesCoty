@@ -3,70 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Lashes Coty | Reserva de Turnos</title>
+    <title>Lashes Coty | Estudio de Pestañas</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header class="header">
-        <h1>Lashes Coty</h1>
-        <p>Estudio de Pestañas & Cejas — Reserva Online</p>
-    </header>
+    <!-- VISTA 1: PORTADA DEL ESTUDIO (LINK-IN-BIO) -->
+    <div id="view-home" class="page-wrapper">
+        <header class="studio-hero">
+            <div class="hero-badge" id="hero-ig">@lashes_coty</div>
+            <h1 id="hero-title">Lashes Coty</h1>
+            <p id="hero-bio" class="hero-bio">Estudio especializado en extensiones de pestañas y diseño de mirada.</p>
+            <button id="btn-start-booking" class="btn-black btn-lg">Reservar turno</button>
+        </header>
 
-    <main class="container container-single">
-        <!-- Sección 1: Formulario de Reserva (Mobile-First) -->
-        <section class="card">
-            <h2>1. Reservá tu turno</h2>
-            <form id="booking-form">
-                <div class="form-group">
-                    <label for="servicio">Elegí tu servicio:</label>
-                    <select id="servicio" required></select>
-                </div>
-
-                <div class="form-group">
-                    <label for="fecha">Fecha del turno:</label>
-                    <input type="date" id="fecha" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Horarios disponibles:</label>
-                    <div id="horarios-container" class="slots-grid">
-                        <p class="hint">Seleccioná un servicio y una fecha para ver los horarios.</p>
-                    </div>
-                    <input type="hidden" id="hora-seleccionada" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="nombre">Tu Nombre y Apellido:</label>
-                    <input type="text" id="nombre" placeholder="Ej: Aldana Pérez" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="telefono">Tu WhatsApp:</label>
-                    <input type="tel" id="telefono" placeholder="Ej: 11 2345-6789" required>
-                </div>
-
-                <!-- Bloque de Seña -->
-                <div class="deposit-box">
-                    <div class="deposit-header">
-                        <span>Seña para confirmar reserva (50%):</span>
-                        <strong id="monto-senia">$0</strong>
-                    </div>
-                    <p class="deposit-note">Transferí la seña y enviá el comprobante por WhatsApp al confirmar para congelar tu horario.</p>
-                    <div class="alias-row">
-                        <div>
-                            <small>Alias Mercado Pago / Banco:</small>
-                            <strong id="alias-texto">LASHES.COTY.MP</strong>
-                        </div>
-                        <button type="button" id="btn-copiar-alias" class="btn-copy">Copiar Alias</button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary btn-whatsapp">
-                    Reservar y Enviar Comprobante por WhatsApp
-                </button>
-            </form>
+        <!-- Servicios Destacados / Lista de Precios -->
+        <section class="section-block">
+            <div class="section-header">
+                <h2>Lista de Precios</h2>
+                <span class="pill-tag">1ra Vez / Servis</span>
+            </div>
+            <div id="home-services-list" class="price-cards-list">
+                <p class="hint">Cargando servicios...</p>
+            </div>
+            <button id="btn-all-services" class="btn-outline" style="margin-top:0.8rem;">Ver todos y reservar →</button>
         </section>
-    </main>
+
+        <!-- Productos a la Venta -->
+        <section class="section-block" id="section-productos">
+            <div class="section-header">
+                <h2>Productos</h2>
+                <span class="pill-tag">Retiro en estudio</span>
+            </div>
+            <div id="home-products-grid" class="products-grid">
+                <p class="hint">Cargando productos...</p>
+            </div>
+        </section>
+
+        <!-- Horarios de Atención -->
+        <section class="section-block">
+            <h2>Horarios de Atención</h2>
+            <div id="home-hours-list" class="hours-card"></div>
+        </section>
+
+        <footer class="studio-footer">
+            <p>Lashes Coty • Reservas Online</p>
+            <a href="admin.html" class="admin-link">Acceso Administración</a>
+        </footer>
+    </div>
+
+    <!-- VISTA 2: FLUJO DE RESERVA EN 4 PASOS -->
+    <div id="view-booking" class="page-wrapper" style="display:none;">
+        <header class="booking-topbar">
+            <button type="button" id="btn-back-step" class="btn-icon">←</button>
+            <div>
+                <small id="step-indicator">Paso 01 de 04</small>
+                <h2 id="step-title">Seleccioná tu servicio</h2>
+            </div>
+        </header>
+
+        <!-- Barra de progreso -->
+        <div class="progress-track">
+            <div id="progress-fill" class="progress-fill" style="width: 25%;"></div>
+        </div>
+
+        <!-- PASO 01: SERVICIOS -->
+        <section id="step-1" class="step-container">
+            <input type="search" id="search-service" class="search-input" placeholder="Buscar servicio (ej: Foxy, Volumen, Remoción)...">
+            
+            <div class="category-chips">
+                <button type="button" class="chip active" data-cat="TODOS">Todos</button>
+                <button type="button" class="chip" data-cat="LASHES">Lashes</button>
+                <button type="button" class="chip" data-cat="EFECTOS">Efectos</button>
+                <button type="button" class="chip" data-cat="ADICIONALES">Adicionales</button>
+            </div>
+
+            <div id="booking-services-list" class="booking-services-list"></div>
+        </section>
+
+        <!-- PASO 02: FECHA Y HORA -->
+        <section id="step-2" class="step-container" style="display:none;">
+            <div class="card-cream">
+                <label for="booking-date">Elegí el día:</label>
+                <input type="date" id="booking-date">
+            </div>
+
+            <div class="card-cream" style="margin-top:1rem;">
+                <label>Horarios disponibles:</label>
+                <div id="booking-slots-grid" class="slots-grid"></div>
+            </div>
+        </section>
+
+        <!-- PASO 03: TUS DATOS -->
+        <section id="step-3" class="step-container" style="display:none;">
+            <div class="card-cream">
+                <div class="form-group">
+                    <label for="client-name">Tu Nombre y Apellido:</label>
+                    <input type="text" id="client-name" placeholder="Ej: Aldana Vargas" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-phone">Tu WhatsApp:</label>
+                    <input type="tel" id="client-phone" placeholder="Ej: 11 2345-6789" required>
+                </div>
+                <div class="form-group">
+                    <label for="client-notes">Comentarios (opcional):</label>
+                    <input type="text" id="client-notes" placeholder="Ej: Tengo puesto set de otra colega">
+                </div>
+            </div>
+        </section>
+
+        <!-- PASO 04: RESUMEN, SEÑA Y PAGO -->
+        <section id="step-4" class="step-container" style="display:none;">
+            <div class="summary-card">
+                <h3>Resumen de tu turno</h3>
+                <div id="booking-summary-details" class="summary-rows"></div>
+            </div>
+
+            <div class="deposit-card-v3">
+                <div class="deposit-top">
+                    <span>Seña no reembolsable para reservar</span>
+                    <strong id="summary-senia">$15.000</strong>
+                </div>
+                <p class="deposit-sub" id="summary-saldo-info"></p>
+
+                <div class="alias-box-v3">
+                    <div>
+                        <small>Alias Mercado Pago / Transferencia:</small>
+                        <strong id="summary-alias">LASHES.COTY.MP</strong>
+                    </div>
+                    <button type="button" id="btn-copy-alias" class="btn-olive">Copiar Alias</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- BARRA INFERIOR FLOTANTE -->
+        <div class="floating-bottom-bar">
+            <div>
+                <small id="bar-label">Servicio seleccionado</small>
+                <strong id="bar-total">$0</strong>
+            </div>
+            <button type="button" id="btn-next-step" class="btn-black">Continuar</button>
+        </div>
+    </div>
+
+    <!-- MODAL PARA ENCARGAR PRODUCTO POR WHATSAPP -->
+    <div id="product-modal" class="modal-backdrop" style="display:none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-prod-title">Producto</h3>
+                <button type="button" id="btn-close-modal" class="btn-icon">✕</button>
+            </div>
+            <p id="modal-prod-price" class="modal-price">$0</p>
+            <p class="hint" style="margin-bottom:0.8rem;">Se abona y retira en el estudio. Completá tus datos para encargarlo por WhatsApp:</p>
+            <div class="form-group">
+                <label>Tu Nombre:</label>
+                <input type="text" id="modal-client-name" placeholder="Tu nombre">
+            </div>
+            <button type="button" id="btn-send-product-wa" class="btn-whatsapp-full">Encargar por WhatsApp</button>
+        </div>
+    </div>
 
     <script type="module" src="app.js"></script>
 </body>

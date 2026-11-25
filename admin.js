@@ -1,9 +1,8 @@
-import { Agenda } from "./models.js";
+import { EstudioService } from "./models.js";
 
-// Contraseña rápida de acceso para la dueña (luego se puede migrar a Firebase Auth)
+// Validación de PIN de acceso rápido
 const PIN_ADMIN = "coty2026";
-const acceso = sessionStorage.getItem("lashes_admin_ok");
-if (!acceso) {
+if (!sessionStorage.getItem("lashes_admin_ok")) {
     const ingresado = prompt("Ingresá la clave de administración de Lashes Coty:");
     if (ingresado !== PIN_ADMIN) {
         alert("Clave incorrecta.");
@@ -13,17 +12,29 @@ if (!acceso) {
     }
 }
 
-const agenda = new Agenda();
-const inputFecha = document.getElementById("admin-fecha");
+const estudio = new EstudioService();
+
+// --- NAVEGACIÓN POR PESTAÑAS ---
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(btn.dataset.tab).classList.add("active");
+    });
+});
+
+// ==========================================
+// 1. GESTIÓN DE TURNOS EN TIEMPO REAL
+// ==========================================
+const inputFechaAdmin = document.getElementById("admin-fecha");
 const listaTurnos = document.getElementById("lista-turnos");
 const contadorTurnos = document.getElementById("contador-turnos");
+let desuscribirTurnos = null;
 
-let desuscribirListener = null;
-
-function suscribirAFecha(fecha) {
-    if (desuscribirListener) desuscribirListener();
-
-    desuscribirListener = agenda.escucharTurnosPorFecha(fecha, (turnos) => {
+function suscribirTurnosFecha(fecha) {
+    if (desuscribirTurnos) desuscribirTurnos();
+    desuscribirTurnos = estudio.escucharTurnosPorFecha(fecha, (turnos) => {
         const ordenados = turnos.sort((a, b) => a.horaInicio - b.horaInicio);
         contadorTurnos.textContent = `${ordenados.length} ${ordenados.length === 1 ? 'turno' : 'turnos'}`;
         listaTurnos.innerHTML = "";
@@ -33,20 +44,21 @@ function suscribirAFecha(fecha) {
             return;
         }
 
-        ordenados.forEach(turno => {
+        ordenados.forEach(t => {
             const item = document.createElement("div");
             item.className = "appointment-item";
-
-            const inicioTxt = Agenda.formatearHora(turno.horaInicio);
-            const finTxt = Agenda.formatearHora(turno.horaFin);
-            const esConfirmado = turno.estado === "CONFIRMADO";
+            const inicioTxt = EstudioService.formatearHora(t.horaInicio);
+            const finTxt = EstudioService.formatearHora(t.horaFin);
+            const esConfirmado = t.estado === "CONFIRMADO";
+            const etiquetaTipo = t.tipoTarifa === "SERVIS" ? " (Servis)" : (t.tipoTarifa === "COLOCACION" ? " (1ra vez)" : "");
 
             item.innerHTML = `
                 <div class="appointment-info">
-                    <strong>${inicioTxt} - ${finTxt} | ${turno.clienteNombre}</strong>
-                    <span>${turno.servicio.nombre} • Tel: ${turno.clienteTelefono}</span>
+                    <strong>${inicioTxt} - ${finTxt} | ${t.clienteNombre}</strong>
+                    <span>${t.servicioNombre}${etiquetaTipo} • $${Number(t.precioTotal).toLocaleString('es-AR')}</span>
+                    <span>Tel: ${t.clienteTelefono}</span>
                     <span class="status-pill ${esConfirmado ? 'status-confirmed' : 'status-pending'}">
-                        ${esConfirmado ? 'Seña Confirmada' : 'Pendiente de Seña'}
+                        ${esConfirmado ? 'Seña Confirmada ($' + Number(t.seniaMonto).toLocaleString('es-AR') + ')' : 'Pendiente de Seña'}
                     </span>
                 </div>
                 <div class="item-actions">
@@ -57,13 +69,13 @@ function suscribirAFecha(fecha) {
 
             if (!esConfirmado) {
                 item.querySelector(".btn-confirm-deposit").addEventListener("click", async () => {
-                    await agenda.confirmarSenia(turno.id);
+                    await estudio.confirmarSenia(t.id);
                 });
             }
 
             item.querySelector(".btn-cancel").addEventListener("click", async () => {
-                if (confirm(`¿Cancelar el turno de ${turno.clienteNombre}? El horario volverá a quedar libre.`)) {
-                    await agenda.eliminarTurno(turno.id);
+                if (confirm(`¿Cancelar el turno de ${t.clienteNombre}? El horario quedará libre nuevamente.`)) {
+                    await estudio.eliminarTurno(t.id);
                 }
             });
 
@@ -72,10 +84,223 @@ function suscribirAFecha(fecha) {
     });
 }
 
-const hoy = new Date().toISOString().split("T")[0];
-inputFecha.value = hoy;
-suscribirAFecha(hoy);
+// ==========================================
+// 2. GESTIÓN DE SERVICIOS Y PRECIOS
+// ==========================================
+const formServicio = document.getElementById("form-servicio");
+const listaServiciosAdmin = document.getElementById("lista-servicios-admin");
+const btnCancelarEdicionSrv = document.getElementById("btn-cancelar-edicion-srv");
 
-inputFecha.addEventListener("change", () => {
-    suscribirAFecha(inputFecha.value);
+async function cargarServiciosAdmin() {
+    await estudio.inicializarCatalogoBaseSiVacio();
+    const servicios = await estudio.obtenerServicios(false);
+    listaServiciosAdmin.innerHTML = "";
+
+    servicios.forEach(srv => {
+        const div = document.createElement("div");
+        div.className = "admin-list-item";
+        const textoPrecios = srv.precioServis
+            ? `Colocación: $${Number(srv.precioNormal).toLocaleString('es-AR')} | Servis: $${Number(srv.precioServis).toLocaleString('es-AR')}`
+            : `Precio: $${Number(srv.precioNormal).toLocaleString('es-AR')}`;
+
+        div.innerHTML = `
+            <div>
+                <strong>${srv.nombre}</strong> <small>(${srv.categoria} • ${srv.duracionMinutos} min)</small><br>
+                <span style="font-size:0.85rem; color:var(--muted);">${textoPrecios}</span>
+            </div>
+            <div style="display:flex; gap:0.3rem;">
+                <button class="btn-sm btn-edit-srv">Editar</button>
+                <button class="btn-cancel btn-del-srv">Borrar</button>
+            </div>
+        `;
+
+        div.querySelector(".btn-edit-srv").addEventListener("click", () => {
+            document.getElementById("srv-id").value = srv.id;
+            document.getElementById("srv-nombre").value = srv.nombre;
+            document.getElementById("srv-categoria").value = srv.categoria;
+            document.getElementById("srv-duracion").value = srv.duracionMinutos;
+            document.getElementById("srv-precio-normal").value = srv.precioNormal;
+            document.getElementById("srv-precio-servis").value = srv.precioServis || "";
+            document.getElementById("srv-descripcion").value = srv.descripcion || "";
+            document.getElementById("form-servicio-titulo").textContent = "Editando: " + srv.nombre;
+            btnCancelarEdicionSrv.style.display = "block";
+            formServicio.scrollIntoView({ behavior: "smooth" });
+        });
+
+        div.querySelector(".btn-del-srv").addEventListener("click", async () => {
+            if (confirm(`¿Eliminar "${srv.nombre}" del catálogo?`)) {
+                await estudio.eliminarServicio(srv.id);
+                await cargarServiciosAdmin();
+            }
+        });
+
+        listaServiciosAdmin.appendChild(div);
+    });
+}
+
+btnCancelarEdicionSrv.addEventListener("click", () => {
+    formServicio.reset();
+    document.getElementById("srv-id").value = "";
+    document.getElementById("form-servicio-titulo").textContent = "Agregar / Editar Servicio";
+    btnCancelarEdicionSrv.style.display = "none";
 });
+
+formServicio.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("srv-id").value || null;
+    const precioServisVal = document.getElementById("srv-precio-servis").value;
+
+    const data = {
+        nombre: document.getElementById("srv-nombre").value.trim(),
+        categoria: document.getElementById("srv-categoria").value,
+        duracionMinutos: parseInt(document.getElementById("srv-duracion").value),
+        precioNormal: parseInt(document.getElementById("srv-precio-normal").value),
+        precioServis: precioServisVal ? parseInt(precioServisVal) : null,
+        descripcion: document.getElementById("srv-descripcion").value.trim()
+    };
+
+    await estudio.guardarServicio(data, id);
+    btnCancelarEdicionSrv.click();
+    await cargarServiciosAdmin();
+    alert("Servicio guardado correctamente.");
+});
+
+// ==========================================
+// 3. GESTIÓN DE PRODUCTOS
+// ==========================================
+const formProducto = document.getElementById("form-producto");
+const listaProductosAdmin = document.getElementById("lista-productos-admin");
+
+async function cargarProductosAdmin() {
+    const productos = await estudio.obtenerProductos();
+    listaProductosAdmin.innerHTML = productos.length === 0 ? `<p class="hint">Todavía no cargaste productos.</p>` : "";
+
+    productos.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "admin-list-item";
+        div.innerHTML = `
+            <div>
+                <small style="color:var(--muted);">${p.marca}</small><br>
+                <strong>${p.nombre}</strong> — $${Number(p.precio).toLocaleString('es-AR')}
+            </div>
+            <button class="btn-cancel">Eliminar</button>
+        `;
+        div.querySelector("button").addEventListener("click", async () => {
+            await estudio.eliminarProducto(p.id);
+            await cargarProductosAdmin();
+        });
+        listaProductosAdmin.appendChild(div);
+    });
+}
+
+formProducto.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await estudio.guardarProducto({
+        marca: document.getElementById("prod-marca").value.trim(),
+        nombre: document.getElementById("prod-nombre").value.trim(),
+        precio: parseInt(document.getElementById("prod-precio").value),
+        imagenUrl: document.getElementById("prod-imagen").value.trim()
+    });
+    formProducto.reset();
+    await cargarProductosAdmin();
+    alert("Producto publicado.");
+});
+
+// ==========================================
+// 4. HORARIOS, CONFIGURACIÓN Y BLOQUEOS
+// ==========================================
+const diasNombres = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const horariosContainer = document.getElementById("horarios-semana-container");
+
+function minutosATimeInput(mins) {
+    return EstudioService.formatearHora(mins);
+}
+function timeInputAMinutos(str) {
+    const [h, m] = str.split(":").map(Number);
+    return h * 60 + m;
+}
+
+async function cargarConfiguracionYBloqueos() {
+    const cfg = await estudio.obtenerConfiguracion();
+    document.getElementById("cfg-senia").value = cfg.montoSeniaFija;
+    document.getElementById("cfg-recargo").value = cfg.recargoTransferencia;
+    document.getElementById("cfg-alias").value = cfg.aliasBancario;
+    document.getElementById("cfg-whatsapp").value = cfg.whatsappNumero;
+
+    horariosContainer.innerHTML = "";
+    for (let d = 0; d < 7; d++) {
+        const regla = cfg.horariosSemana[d];
+        const row = document.createElement("div");
+        row.className = "day-row";
+        row.innerHTML = `
+            <label style="margin:0; display:flex; align-items:center; gap:0.4rem;">
+                <input type="checkbox" id="dia-abierto-${d}" ${regla.abierto ? "checked" : ""}> ${diasNombres[d]}
+            </label>
+            <input type="time" id="dia-apertura-${d}" value="${minutosATimeInput(regla.apertura)}">
+            <input type="time" id="dia-cierre-${d}" value="${minutosATimeInput(regla.cierre)}">
+        `;
+        horariosContainer.appendChild(row);
+    }
+
+    await cargarBloqueosAdmin();
+}
+
+document.getElementById("form-config").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const horariosSemana = {};
+    for (let d = 0; d < 7; d++) {
+        horariosSemana[d] = {
+            abierto: document.getElementById(`dia-abierto-${d}`).checked,
+            apertura: timeInputAMinutos(document.getElementById(`dia-apertura-${d}`).value),
+            cierre: timeInputAMinutos(document.getElementById(`dia-cierre-${d}`).value)
+        };
+    }
+
+    await estudio.guardarConfiguracion({
+        montoSeniaFija: parseInt(document.getElementById("cfg-senia").value),
+        recargoTransferencia: parseInt(document.getElementById("cfg-recargo").value),
+        aliasBancario: document.getElementById("cfg-alias").value.trim(),
+        whatsappNumero: document.getElementById("cfg-whatsapp").value.trim(),
+        horariosSemana
+    });
+    alert("Configuración y horarios guardados.");
+});
+
+async function cargarBloqueosAdmin() {
+    const lista = document.getElementById("lista-bloqueos-admin");
+    const bloqueos = await estudio.obtenerTodosLosBloqueos();
+    lista.innerHTML = bloqueos.length === 0 ? `<p class="hint">No hay fechas bloqueadas.</p>` : "";
+
+    bloqueos.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "admin-list-item";
+        div.innerHTML = `
+            <div><strong>${b.fecha}</strong> — ${b.motivo}</div>
+            <button class="btn-cancel">Desbloquear</button>
+        `;
+        div.querySelector("button").addEventListener("click", async () => {
+            await estudio.eliminarBloqueo(b.id);
+            await cargarBloqueosAdmin();
+        });
+        lista.appendChild(div);
+    });
+}
+
+document.getElementById("form-bloqueo").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fecha = document.getElementById("bloq-fecha").value;
+    const motivo = document.getElementById("bloq-motivo").value.trim();
+    await estudio.crearBloqueo(fecha, true, 0, 1440, motivo);
+    document.getElementById("form-bloqueo").reset();
+    await cargarBloqueosAdmin();
+});
+
+// Inicializar todo el panel
+const hoy = new Date().toISOString().split("T")[0];
+inputFechaAdmin.value = hoy;
+suscribirTurnosFecha(hoy);
+inputFechaAdmin.addEventListener("change", () => suscribirTurnosFecha(inputFechaAdmin.value));
+
+cargarServiciosAdmin();
+cargarProductosAdmin();
+cargarConfiguracionYBloqueos();

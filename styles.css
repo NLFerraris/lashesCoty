@@ -1,11 +1,13 @@
 :root {
-    --primary: #b76e79;       /* Rosa viejo / Rose Gold */
-    --primary-dark: #96525d;
-    --bg: #faf7f8;
-    --card-bg: #ffffff;
-    --text: #2d2a2b;
-    --muted: #7a7275;
-    --border: #e8dfe2;
+    --bg-cream: #f8f5f0;
+    --card-white: #ffffff;
+    --olive-soft: #d6dbc4;
+    --olive-dark: #5f6846;
+    --black: #111111;
+    --text: #1e1e1e;
+    --muted: #6e6a63;
+    --border: #e6e0d6;
+    --whatsapp: #1ebe5d;
 }
 
 * {
@@ -16,308 +18,479 @@
 }
 
 body {
-    background-color: var(--bg);
+    background-color: var(--bg-cream);
     color: var(--text);
-    line-height: 1.5;
+    line-height: 1.45;
+    padding-bottom: 90px;
 }
 
-.header {
-    background: linear-gradient(135deg, #2d2a2b 0%, #4a3b3e 100%);
-    color: #fff;
+.page-wrapper {
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+/* --- PORTADA DEL ESTUDIO --- */
+.studio-hero {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem 1.4rem;
     text-align: center;
-    padding: 2rem 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
-.header h1 {
-    font-size: 2rem;
-    letter-spacing: 1px;
+.hero-badge {
+    display: inline-block;
+    background: var(--olive-soft);
+    color: var(--black);
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 0.25rem 0.8rem;
+    border-radius: 20px;
+    margin-bottom: 0.6rem;
 }
 
-.header p {
-    color: #e8dfe2;
-    font-size: 0.95rem;
-    margin-top: 0.3rem;
+.studio-hero h1 {
+    font-size: 1.9rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.5rem;
 }
 
-.container {
-    max-width: 1050px;
-    margin: 0 auto 3rem;
-    padding: 0 1rem;
+.hero-bio {
+    color: var(--muted);
+    font-size: 0.92rem;
+    margin-bottom: 1.4rem;
+}
+
+.btn-black {
+    background: var(--black);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 0.85rem 1.4rem;
+    font-size: 0.98rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-black:hover { opacity: 0.88; }
+.btn-lg { width: 100%; padding: 1rem; font-size: 1.05rem; }
+
+.btn-outline {
+    width: 100%;
+    background: transparent;
+    border: 1.5px solid var(--black);
+    color: var(--black);
+    border-radius: 14px;
+    padding: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.section-block {
+    margin-bottom: 1.8rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.9rem;
+}
+
+.section-block h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.pill-tag {
+    background: var(--olive-soft);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    border-radius: 12px;
+}
+
+/* Lista de precios en portada */
+.price-cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.price-row-card {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.price-row-card strong { font-size: 0.96rem; display: block; }
+.price-row-card small { color: var(--muted); font-size: 0.8rem; }
+.price-values { text-align: right; white-space: nowrap; }
+.price-values span { display: block; font-weight: 700; font-size: 0.95rem; }
+.price-values small { color: var(--olive-dark); font-weight: 600; }
+
+/* Grid de Productos */
+.products-grid {
     display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
 }
 
-@media (max-width: 768px) {
-    .container {
-        grid-template-columns: 1fr;
-    }
+.product-card {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.card {
-    background: var(--card-bg);
+.product-card img {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 0.6rem;
+    background: var(--bg-cream);
+}
+
+.product-brand { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+.product-title { font-size: 0.92rem; font-weight: 700; margin: 0.2rem 0; }
+.product-price { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.6rem; }
+
+.btn-olive-sm {
+    background: var(--olive-soft);
+    color: var(--black);
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+}
+
+/* Horarios */
+.hours-card {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    margin-top: 0.6rem;
+}
+
+.hours-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.35rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--bg-cream);
+}
+.hours-line:last-child { border-bottom: none; }
+
+.studio-footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+.admin-link { color: var(--muted); text-decoration: underline; display: inline-block; margin-top: 0.3rem; }
+
+/* --- FLUJO DE RESERVA EN 4 PASOS --- */
+.booking-topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-bottom: 0.8rem;
+}
+
+.btn-icon {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.booking-topbar small { color: var(--muted); font-weight: 600; }
+.booking-topbar h2 { font-size: 1.25rem; }
+
+.progress-track {
+    width: 100%;
+    height: 6px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1.2rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--black);
+    transition: width 0.3s ease;
+}
+
+.search-input, input[type="text"], input[type="tel"], input[type="date"], input[type="number"], select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.7rem 0.9rem;
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.card h2 {
-    font-size: 1.25rem;
-    margin-bottom: 1.2rem;
-    color: var(--primary-dark);
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.4rem;
-}
-
-input[type="text"],
-input[type="tel"],
-input[type="date"],
-select {
-    width: 100%;
-    padding: 0.65rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.95rem;
+    background: var(--card-white);
+    font-size: 16px;
     outline: none;
-    transition: border-color 0.2s;
 }
 
-input:focus, select:focus {
-    border-color: var(--primary);
-}
-
-.slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.4rem;
-}
-
-.slot-btn {
-    padding: 0.5rem;
-    border: 1px solid var(--primary);
-    background: #fff;
-    color: var(--primary-dark);
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
-}
-
-.slot-btn:hover {
-    background: #fdf2f4;
-}
-
-.slot-btn.selected {
-    background: var(--primary);
-    color: #fff;
-}
-
-.btn-primary {
-    width: 100%;
-    padding: 0.85rem;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    transition: background 0.2s;
-}
-
-.btn-primary:hover {
-    background: var(--primary-dark);
-}
-
-.panel-header {
+.category-chips {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.2rem;
+    gap: 0.45rem;
+    overflow-x: auto;
+    margin: 0.9rem 0;
+    padding-bottom: 0.2rem;
 }
 
-.panel-header h2 {
-    margin-bottom: 0;
-}
-
-.badge {
-    background: #fdf2f4;
-    color: var(--primary-dark);
-    padding: 0.25rem 0.7rem;
+.chip {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    padding: 0.45rem 0.95rem;
     border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.appointment-item {
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--primary);
-    border-radius: 8px;
-    padding: 0.9rem;
-    margin-bottom: 0.8rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.appointment-info strong {
-    display: block;
-    font-size: 1rem;
-}
-
-.appointment-info span {
-    font-size: 0.85rem;
-    color: var(--muted);
-    display: block;
-}
-
-.btn-cancel {
-    background: transparent;
-    border: 1px solid #d9534f;
-    color: #d9534f;
-    padding: 0.35rem 0.65rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    cursor: pointer;
-}
-
-.btn-cancel:hover {
-    background: #d9534f;
-    color: #fff;
-}
-
-.hint {
-    color: var(--muted);
-    font-size: 0.9rem;
-    grid-column: 1 / -1;
-}
-/* --- Estilos v2.0: Seña, WhatsApp y Mobile-First --- */
-input[type="text"],
-input[type="tel"],
-input[type="date"],
-select,
-.slot-btn {
-    min-height: 46px; /* Tamaño cómodo para tocar con el pulgar en celular */
-    font-size: 16px;  /* Evita el zoom automático en iPhone/Instagram browser */
-}
-
-.deposit-box {
-    background: #fdf6f7;
-    border: 1px dashed var(--primary);
-    border-radius: 10px;
-    padding: 1rem;
-    margin: 1.2rem 0;
-}
-
-.deposit-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.95rem;
-    margin-bottom: 0.4rem;
-}
-
-.deposit-header strong {
-    font-size: 1.2rem;
-    color: var(--primary-dark);
-}
-
-.deposit-note {
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-bottom: 0.8rem;
-}
-
-.alias-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0.6rem 0.8rem;
-    gap: 0.5rem;
-}
-
-.alias-row small {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted);
-}
-
-.btn-copy {
-    background: var(--text);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 0.55rem 0.85rem;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
 }
 
-.btn-copy.copied {
-    background: #25d366;
-}
-
-.btn-whatsapp {
-    background: #1ebe5d;
-    min-height: 50px;
-}
-
-.btn-whatsapp:hover {
-    background: #189e4d;
-}
-
-.status-pill {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 0.15rem 0.5rem;
-    border-radius: 12px;
-    margin-top: 0.3rem;
-}
-
-.status-pending {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.status-confirmed {
-    background: #d4edda;
-    color: #155724;
-}
-
-.item-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.btn-confirm-deposit {
-    background: #28a745;
+.chip.active {
+    background: var(--black);
     color: #fff;
-    border: none;
-    padding: 0.35rem 0.65rem;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    border-color: var(--black);
+}
+
+/* Tarjeta seleccionable de servicio con opción Colocación vs Servis */
+.srv-select-card {
+    background: var(--card-white);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.srv-select-card.selected {
+    border-color: var(--black);
+    background: #fcfbf9;
+}
+
+.srv-select-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.35rem;
+}
+
+.srv-select-desc {
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+}
+
+.tariff-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.tariff-btn {
+    border: 1px solid var(--border);
+    background: var(--bg-cream);
+    border-radius: 10px;
+    padding: 0.55rem 0.6rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+
+.tariff-btn.chosen {
+    background: var(--olive-soft);
+    border-color: var(--black);
+    color: var(--black);
+}
+
+.card-cream {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.1rem;
+}
+
+.form-group { margin-bottom: 0.9rem; }
+label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; }
+
+.slots-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.slot-btn {
+    min-height: 44px;
+    border: 1px solid var(--border);
+    background: var(--bg-cream);
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.92rem;
     cursor: pointer;
 }
-.container-single {
-    grid-template-columns: 1fr;
-    max-width: 580px;
+
+.slot-btn.selected {
+    background: var(--black);
+    color: #fff;
+    border-color: var(--black);
 }
+
+/* Resumen y Seña Paso 04 */
+.summary-card, .deposit-card-v3 {
+    background: var(--card-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-rows div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--bg-cream);
+    font-size: 0.92rem;
+}
+
+.deposit-card-v3 {
+    background: #f4f6ee;
+    border-color: var(--olive-soft);
+}
+
+.deposit-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.deposit-top strong { font-size: 1.25rem; }
+.deposit-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.8rem; }
+
+.alias-box-v3 {
+    background: var(--card-white);
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alias-box-v3 small { display: block; font-size: 0.75rem; color: var(--muted); }
+
+.btn-olive {
+    background: var(--olive-soft);
+    border: none;
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+/* Barra inferior flotante */
+.floating-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 540px;
+    margin: 0 auto;
+    background: var(--card-white);
+    border-top: 1px solid var(--border);
+    padding: 0.8rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 50;
+}
+
+.floating-bottom-bar small { display: block; font-size: 0.75rem; color: var(--muted); }
+.floating-bottom-bar strong { font-size: 1.15rem; }
+
+/* Modal de Producto */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-card {
+    background: var(--card-white);
+    width: 100%;
+    max-width: 540px;
+    border-radius: 20px 20px 0 0;
+    padding: 1.4rem;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-price { font-size: 1.2rem; font-weight: 800; margin: 0.4rem 0; }
+
+.btn-whatsapp-full {
+    width: 100%;
+    background: var(--whatsapp);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.95rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Compatibilidad con admin.html */
+.header {
+    background: var(--black);
+    color: #fff;
+    text-align: center;
+    padding: 1.6rem 1rem;
+    margin-bottom: 1.2rem;
+}
+.container-single { max-width: 580px; margin: 0 auto; padding: 0 1rem; }
+.card { background: var(--card-white); border: 1px solid var(--border); border-radius: 16px; padding: 1.2rem; }
+.panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.badge { background: var(--olive-soft); padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.82rem; font-weight: 700; }
+.appointment-item { border: 1px solid var(--border); border-left: 4px solid var(--black); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.7rem; display: flex; justify-content: space-between; align-items: center; }
+.appointment-info span { display: block; font-size: 0.85rem; color: var(--muted); }
+.status-pill { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 10px; margin-top: 0.3rem; }
+.status-pending { background: #fff3cd; color: #856404; }
+.status-confirmed { background: #d4edda; color: #155724; }
+.item-actions { display: flex; flex-direction: column; gap: 0.35rem; }
+.btn-confirm-deposit { background: #28a745; color: #fff; border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.btn-cancel { background: transparent; border: 1px solid #d9534f; color: #d9534f; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.hint { color: var(--muted); font-size: 0.88rem; }

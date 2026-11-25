@@ -1,10 +1,9 @@
 // Importamos los módulos necesarios desde el CDN oficial de Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { 
-    getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, onSnapshot 
+    getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-// PEGÁ ACÁ TU OBJETO firebaseConfig QUE TE DIO LA CONSOLA DE FIREBASE:
 const firebaseConfig = {
     apiKey: "AIzaSyDzrE9yedcqkOAGqPWbiF9YtrmPNwAmFLU",
     authDomain: "lashes-coty.firebaseapp.com",
@@ -17,4 +16,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-export { db, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, onSnapshot };
+export { db, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot };

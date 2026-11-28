@@ -2,37 +2,13 @@ import {
     db, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot 
 } from "./firebase-config.js";
 
-export class Servicio {
-    constructor(id, nombre, categoria, duracionMinutos, precioNormal, precioServis = null, descripcion = "", activo = true) {
-        this.id = id;
-        this.nombre = nombre;
-        this.categoria = categoria; // "LASHES" | "EFECTOS" | "ADICIONALES"
-        this.duracionMinutos = duracionMinutos;
-        this.precioNormal = precioNormal;
-        this.precioServis = precioServis; // null si no aplica servis (ej: remoción)
-        this.descripcion = descripcion;
-        this.activo = activo;
-    }
-}
-
-export class Producto {
-    constructor(id, marca, nombre, precio, imagenUrl = "", activo = true) {
-        this.id = id;
-        this.marca = marca;
-        this.nombre = nombre;
-        this.precio = precio;
-        this.imagenUrl = imagenUrl;
-        this.activo = activo;
-    }
-}
-
 export class Turno {
     constructor(id, clienteNombre, clienteTelefono, servicioNombre, tipoTarifa, precioTotal, seniaMonto, duracionMinutos, fecha, horaInicioMinutos, estado = "PENDIENTE_SEÑA") {
         this.id = id;
         this.clienteNombre = clienteNombre;
         this.clienteTelefono = clienteTelefono;
         this.servicioNombre = servicioNombre;
-        this.tipoTarifa = tipoTarifa; // "COLOCACION" | "SERVIS" | "UNICO"
+        this.tipoTarifa = tipoTarifa;
         this.precioTotal = precioTotal;
         this.seniaMonto = seniaMonto;
         this.duracionMinutos = duracionMinutos;
@@ -52,6 +28,7 @@ export class EstudioService {
         this.turnosRef = collection(db, "turnos");
         this.serviciosRef = collection(db, "servicios");
         this.productosRef = collection(db, "productos");
+        this.galeriaRef = collection(db, "galeria");
         this.bloqueosRef = collection(db, "bloqueos");
         this.configDocRef = doc(db, "configuracion", "general");
     }
@@ -59,9 +36,6 @@ export class EstudioService {
     // --- CONFIGURACIÓN GENERAL Y HORARIOS SEMANALES ---
     async obtenerConfiguracion() {
         const snap = await getDoc(this.configDocRef);
-        if (snap.exists()) return snap.data();
-
-        // Configuración inicial basada en @lashes_coty
         const defaultConfig = {
             nombreEstudio: "Lashes Coty",
             instagram: "@lashes_coty",
@@ -70,24 +44,43 @@ export class EstudioService {
             aliasBancario: "LASHES.COTY.MP",
             montoSeniaFija: 15000,
             recargoTransferencia: 2000,
+            recargoHorarioExtra: 10000, // Después de las 18:00 hs
+            recargoFeriado: 10000,      // Días feriados
             intervaloMinutos: 30,
-            // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
             horariosSemana: {
                 0: { abierto: false, apertura: 540, cierre: 1140 },
                 1: { abierto: false, apertura: 540, cierre: 1140 },
-                2: { abierto: true, apertura: 540, cierre: 1200 },  // 09:00 a 20:00
+                2: { abierto: true, apertura: 540, cierre: 1200 },
                 3: { abierto: true, apertura: 540, cierre: 1200 },
                 4: { abierto: true, apertura: 540, cierre: 1200 },
                 5: { abierto: true, apertura: 540, cierre: 1200 },
-                6: { abierto: true, apertura: 540, cierre: 1140 }   // 09:00 a 19:00
+                6: { abierto: true, apertura: 540, cierre: 1140 }
             }
         };
+
+        if (snap.exists()) {
+            return { ...defaultConfig, ...snap.data() };
+        }
         await setDoc(this.configDocRef, defaultConfig);
         return defaultConfig;
     }
 
     async guardarConfiguracion(nuevaConfig) {
         await setDoc(this.configDocRef, nuevaConfig, { merge: true });
+    }
+
+    // --- GALERÍA DE TRABAJOS ---
+    async obtenerGaleria() {
+        const snap = await getDocs(this.galeriaRef);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    async agregarFotoGaleria(url, titulo = "") {
+        await addDoc(this.galeriaRef, { url, titulo, creadoEn: new Date().toISOString() });
+    }
+
+    async eliminarFotoGaleria(id) {
+        await deleteDoc(doc(db, "galeria", id));
     }
 
     // --- SERVICIOS ---
@@ -110,7 +103,6 @@ export class EstudioService {
         await deleteDoc(doc(db, "servicios", id));
     }
 
-    // Carga inicial automática con la lista de precios de la imagen si la colección está vacía
     async inicializarCatalogoBaseSiVacio() {
         const existentes = await this.obtenerServicios(false);
         if (existentes.length > 0) return;
@@ -127,9 +119,7 @@ export class EstudioService {
             { nombre: "Anime", categoria: "EFECTOS", duracionMinutos: 120, precioNormal: 32000, precioServis: 30000, descripcion: "Picos marcados estilo muñeca / manga." },
             { nombre: "Brown Lashes", categoria: "EFECTOS", duracionMinutos: 120, precioNormal: 32000, precioServis: 30000, descripcion: "Extensiones en tono marrón cálido." },
             { nombre: "Remoción mía", categoria: "ADICIONALES", duracionMinutos: 30, precioNormal: 10000, precioServis: null, descripcion: "Retiro seguro de set realizado en el estudio." },
-            { nombre: "Remoción de otra colega", categoria: "ADICIONALES", duracionMinutos: 45, precioNormal: 10000, precioServis: null, descripcion: "Retiro cuidadoso de trabajo externo." },
-            { nombre: "Horario extra (Dsp 18hs)", categoria: "ADICIONALES", duracionMinutos: 30, precioNormal: 10000, precioServis: null, descripcion: "Adicional por turno fuera de franja regular." },
-            { nombre: "Feriado recargo", categoria: "ADICIONALES", duracionMinutos: 30, precioNormal: 10000, precioServis: null, descripcion: "Adicional aplicable en días feriados." }
+            { nombre: "Remoción de otra colega", categoria: "ADICIONALES", duracionMinutos: 45, precioNormal: 10000, precioServis: null, descripcion: "Retiro cuidadoso de trabajo externo." }
         ];
 
         for (const item of catalogoInicial) {
@@ -155,23 +145,24 @@ export class EstudioService {
         await deleteDoc(doc(db, "productos", id));
     }
 
-    // --- BLOQUEOS DE FECHAS / HORARIOS (Francos, vacaciones, etc.) ---
-    async obtenerBloqueosPorFecha(fecha) {
+    // --- FECHAS ESPECIALES: BLOQUEOS (CERRADO) Y FERIADOS (CON RECARGO) ---
+    async obtenerFechasEspecialesPorFecha(fecha) {
         const q = query(this.bloqueosRef, where("fecha", "==", fecha));
         const snap = await getDocs(q);
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
 
-    async obtenerTodosLosBloqueos() {
+    async obtenerTodasLasFechasEspeciales() {
         const snap = await getDocs(this.bloqueosRef);
         return snap.docs.map(d => ({ id: d.id, ...d.data() }));
     }
 
-    async crearBloqueo(fecha, todoElDia, horaInicio = 0, horaFin = 1440, motivo = "No disponible") {
-        await addDoc(this.bloqueosRef, { fecha, todoElDia, horaInicio, horaFin, motivo });
+    // tipo: "CERRADO" (bloquea todo el día) | "FERIADO" (permite reservar con recargo automático)
+    async crearFechaEspecial(fecha, tipo = "CERRADO", motivo = "No disponible") {
+        await addDoc(this.bloqueosRef, { fecha, tipo, todoElDia: tipo === "CERRADO", motivo });
     }
 
-    async eliminarBloqueo(id) {
+    async eliminarFechaEspecial(id) {
         await deleteDoc(doc(db, "bloqueos", id));
     }
 
@@ -210,30 +201,36 @@ export class EstudioService {
         const diaSemana = new Date(anio, mes - 1, dia).getDay();
         const reglaDia = config.horariosSemana[diaSemana];
 
-        if (!reglaDia || !reglaDia.abierto) return [];
+        if (!reglaDia || !reglaDia.abierto) return { slots: [], esFeriado: false, motivoFeriado: "" };
 
-        const bloqueos = await this.obtenerBloqueosPorFecha(fecha);
-        if (bloqueos.some(b => b.todoElDia)) return [];
+        const especiales = await this.obtenerFechasEspecialesPorFecha(fecha);
+        if (especiales.some(e => e.tipo === "CERRADO" || e.todoElDia === true)) {
+            return { slots: [], esFeriado: false, motivoFeriado: "" };
+        }
 
+        const feriadoObj = especiales.find(e => e.tipo === "FERIADO");
         const turnosDelDia = await this.obtenerTurnosPorFecha(fecha);
-        const disponibles = [];
+        const slots = [];
         const paso = config.intervaloMinutos || 30;
 
         for (let inicio = reglaDia.apertura; inicio + duracionMinutos <= reglaDia.cierre; inicio += paso) {
             const fin = inicio + duracionMinutos;
             const pisaTurno = turnosDelDia.some(t => t.seSuperponeCon(inicio, fin));
-            const pisaBloqueo = bloqueos.some(b => inicio < b.horaFin && fin > b.horaInicio);
-
-            if (!pisaTurno && !pisaBloqueo) {
-                disponibles.push(inicio);
+            if (!pisaTurno) {
+                slots.push(inicio);
             }
         }
-        return disponibles;
+
+        return {
+            slots,
+            esFeriado: Boolean(feriadoObj),
+            motivoFeriado: feriadoObj ? feriadoObj.motivo : ""
+        };
     }
 
     async agendarTurno(datosTurno) {
-        const disponibles = await this.obtenerHorariosDisponibles(datosTurno.fecha, datosTurno.duracionMinutos);
-        if (!disponibles.includes(datosTurno.horaInicio)) {
+        const { slots } = await this.obtenerHorariosDisponibles(datosTurno.fecha, datosTurno.duracionMinutos);
+        if (!slots.includes(datosTurno.horaInicio)) {
             throw new Error("Ese horario acaba de ocuparse. Por favor seleccioná otro.");
         }
 

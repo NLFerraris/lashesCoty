@@ -7,25 +7,25 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- VISTA 1: PORTADA DEL ESTUDIO (LINK-IN-BIO) -->
+    <!-- VISTA 1: PORTADA DEL ESTUDIO -->
     <div id="view-home" class="page-wrapper">
-        <header class="studio-hero">
+       <header class="studio-hero">
+            <img id="hero-logo" src="logo.png" onerror="this.style.display='none'" alt="Logo Lashes Coty" class="studio-logo">
             <div class="hero-badge" id="hero-ig">@lashes_coty</div>
             <h1 id="hero-title">Lashes Coty</h1>
             <p id="hero-bio" class="hero-bio">Estudio especializado en extensiones de pestañas y diseño de mirada.</p>
             <button id="btn-start-booking" class="btn-black btn-lg">Reservar turno</button>
         </header>
 
-        <!-- Servicios Destacados / Lista de Precios -->
+        <!-- Galería deslizable horizontal -->
         <section class="section-block">
             <div class="section-header">
-                <h2>Lista de Precios</h2>
-                <span class="pill-tag">1ra Vez / Servis</span>
+                <h2>Galería de Trabajos</h2>
+                <span class="pill-tag">Deslizá →</span>
             </div>
-            <div id="home-services-list" class="price-cards-list">
-                <p class="hint">Cargando servicios...</p>
+            <div id="home-gallery-carousel" class="gallery-carousel">
+                <p class="hint">Cargando galería...</p>
             </div>
-            <button id="btn-all-services" class="btn-outline" style="margin-top:0.8rem;">Ver todos y reservar →</button>
         </section>
 
         <!-- Productos a la Venta -->
@@ -47,7 +47,6 @@
 
         <footer class="studio-footer">
             <p>Lashes Coty • Reservas Online</p>
-            <a href="admin.html" class="admin-link">Acceso Administración</a>
         </footer>
     </div>
 
@@ -61,7 +60,6 @@
             </div>
         </header>
 
-        <!-- Barra de progreso -->
         <div class="progress-track">
             <div id="progress-fill" class="progress-fill" style="width: 25%;"></div>
         </div>
@@ -74,7 +72,7 @@
                 <button type="button" class="chip active" data-cat="TODOS">Todos</button>
                 <button type="button" class="chip" data-cat="LASHES">Lashes</button>
                 <button type="button" class="chip" data-cat="EFECTOS">Efectos</button>
-                <button type="button" class="chip" data-cat="ADICIONALES">Adicionales</button>
+                <button type="button" class="chip" data-cat="ADICIONALES">Remoción</button>
             </div>
 
             <div id="booking-services-list" class="booking-services-list"></div>
@@ -86,6 +84,9 @@
                 <label for="booking-date">Elegí el día:</label>
                 <input type="date" id="booking-date">
             </div>
+
+            <!-- Aviso automático de recargo (Feriado o después de 18hs) -->
+            <div id="surcharge-alert" class="surcharge-banner" style="display:none;"></div>
 
             <div class="card-cream" style="margin-top:1rem;">
                 <label>Horarios disponibles:</label>

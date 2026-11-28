@@ -187,6 +187,17 @@
 
         <!-- PESTAÑA 4: HORARIOS, BLOQUEOS Y CONFIGURACIÓN -->
         <section id="tab-horarios" class="tab-panel card">
+            <h2>Logo del Estudio</h2>
+            <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem;">
+                <img id="admin-logo-preview" src="logo.png" onerror="this.src='https://placehold.co/100x100/d6dbc4/111111?text=Logo'" alt="Preview Logo" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid var(--border);">
+                <div style="flex:1;">
+                    <label for="cfg-logo-file" style="margin-bottom:0.3rem;">Subir nuevo logo desde galería:</label>
+                    <input type="file" id="cfg-logo-file" accept="image/*" style="font-size:0.85rem;">
+                    <small class="hint" style="display:block; margin-top:0.2rem;">Se guarda automáticamente al elegir la foto.</small>
+                </div>
+            </div>
+            <hr style="margin: 1.2rem 0; border: none; border-top: 1px solid var(--border);">
+            
             <h2>Datos y Seña</h2>
             <form id="form-config">
                 <div class="grid-2">
@@ -216,22 +227,44 @@
                 <button type="submit" class="btn-dark" style="margin-top:1rem;">Guardar Configuración</button>
             </form>
 
-            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
-            <h2>Bloquear Fecha o Feriado</h2>
+          <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+            <h2>Días Cerrados o Feriados (con Recargo)</h2>
             <form id="form-bloqueo">
                 <div class="grid-2">
                     <div class="form-group">
-                        <label>Fecha a bloquear:</label>
+                        <label>Fecha:</label>
                         <input type="date" id="bloq-fecha" required>
                     </div>
                     <div class="form-group">
-                        <label>Motivo:</label>
-                        <input type="text" id="bloq-motivo" placeholder="Ej: Franco / Feriado" required>
+                        <label>Tipo:</label>
+                        <select id="bloq-tipo">
+                            <option value="CERRADO">Día Cerrado (sin turnos)</option>
+                            <option value="FERIADO">Feriado (con recargo automático)</option>
+                        </select>
                     </div>
                 </div>
-                <button type="submit" class="btn-dark">Bloquear Día Completo</button>
+                <div class="form-group">
+                    <label>Motivo / Nombre del feriado:</label>
+                    <input type="text" id="bloq-motivo" placeholder="Ej: Franco / Día de la Independencia" required>
+                </div>
+                <button type="submit" class="btn-dark">Guardar Fecha Especial</button>
             </form>
             <div id="lista-bloqueos-admin" style="margin-top:1rem;"></div>
+
+            <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
+            <h2>Fotos de Galería (Portada)</h2>
+            <form id="form-galeria">
+                <div class="form-group">
+                    <label>URL de la foto:</label>
+                    <input type="text" id="gal-url" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción corta (opcional):</label>
+                    <input type="text" id="gal-titulo" placeholder="Ej: Volumen Ruso Art">
+                </div>
+                <button type="submit" class="btn-dark">Agregar Foto a Galería</button>
+            </form>
+            <div id="lista-galeria-admin" style="margin-top:1rem;"></div>
         </section>
     </main>
 

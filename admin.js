@@ -220,8 +220,56 @@ function timeInputAMinutos(str) {
     return h * 60 + m;
 }
 
+// --- SUBIDA Y COMPRESIÓN DE LOGO ---
+function procesarYGuardarLogo(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onload = async () => {
+                const canvas = document.createElement("canvas");
+                const size = 250;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext("2d");
+
+                const minSide = Math.min(img.width, img.height);
+                const sx = (img.width - minSide) / 2;
+                const sy = (img.height - minSide) / 2;
+                ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+                const logoBase64 = canvas.toDataURL("image/webp", 0.85);
+                await estudio.guardarConfiguracion({ logoUrl: logoBase64 });
+                resolve(logoBase64);
+            };
+            img.onerror = reject;
+            img.src = event.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+document.getElementById("cfg-logo-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+        const nuevoLogo = await procesarYGuardarLogo(file);
+        document.getElementById("admin-logo-preview").src = nuevoLogo;
+        alert("Logo actualizado correctamente.");
+    } catch {
+        alert("No se pudo procesar la imagen. Probá con otro archivo.");
+    }
+});
+
+// --- CARGA Y GUARDADO DE CONFIGURACIÓN ---
 async function cargarConfiguracionYBloqueos() {
     const cfg = await estudio.obtenerConfiguracion();
+
+    if (cfg.logoUrl) {
+        document.getElementById("admin-logo-preview").src = cfg.logoUrl;
+    }
+
     document.getElementById("cfg-senia").value = cfg.montoSeniaFija;
     document.getElementById("cfg-recargo").value = cfg.recargoTransferencia;
     document.getElementById("cfg-alias").value = cfg.aliasBancario;
@@ -266,20 +314,42 @@ document.getElementById("form-config").addEventListener("submit", async (e) => {
     alert("Configuración y horarios guardados.");
 });
 
+document.getElementById("form-config").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const horariosSemana = {};
+    for (let d = 0; d < 7; d++) {
+        horariosSemana[d] = {
+            abierto: document.getElementById(`dia-abierto-${d}`).checked,
+            apertura: timeInputAMinutos(document.getElementById(`dia-apertura-${d}`).value),
+            cierre: timeInputAMinutos(document.getElementById(`dia-cierre-${d}`).value)
+        };
+    }
+
+    await estudio.guardarConfiguracion({
+        montoSeniaFija: parseInt(document.getElementById("cfg-senia").value),
+        recargoTransferencia: parseInt(document.getElementById("cfg-recargo").value),
+        aliasBancario: document.getElementById("cfg-alias").value.trim(),
+        whatsappNumero: document.getElementById("cfg-whatsapp").value.trim(),
+        horariosSemana
+    });
+    alert("Configuración y horarios guardados.");
+});
+
 async function cargarBloqueosAdmin() {
     const lista = document.getElementById("lista-bloqueos-admin");
-    const bloqueos = await estudio.obtenerTodosLosBloqueos();
-    lista.innerHTML = bloqueos.length === 0 ? `<p class="hint">No hay fechas bloqueadas.</p>` : "";
+    const especiales = await estudio.obtenerTodasLasFechasEspeciales();
+    lista.innerHTML = especiales.length === 0 ? `<p class="hint">No hay fechas especiales cargadas.</p>` : "";
 
-    bloqueos.forEach(b => {
+    especiales.forEach(b => {
         const div = document.createElement("div");
         div.className = "admin-list-item";
+        const etiqueta = b.tipo === "FERIADO" ? "🎉 Feriado (+Recargo)" : "🚫 Cerrado";
         div.innerHTML = `
-            <div><strong>${b.fecha}</strong> — ${b.motivo}</div>
-            <button class="btn-cancel">Desbloquear</button>
+            <div><strong>${b.fecha}</strong> • ${etiqueta}<br><small>${b.motivo}</small></div>
+            <button class="btn-cancel">Quitar</button>
         `;
         div.querySelector("button").addEventListener("click", async () => {
-            await estudio.eliminarBloqueo(b.id);
+            await estudio.eliminarFechaEspecial(b.id);
             await cargarBloqueosAdmin();
         });
         lista.appendChild(div);
@@ -289,10 +359,40 @@ async function cargarBloqueosAdmin() {
 document.getElementById("form-bloqueo").addEventListener("submit", async (e) => {
     e.preventDefault();
     const fecha = document.getElementById("bloq-fecha").value;
+    const tipo = document.getElementById("bloq-tipo").value;
     const motivo = document.getElementById("bloq-motivo").value.trim();
-    await estudio.crearBloqueo(fecha, true, 0, 1440, motivo);
+    await estudio.crearFechaEspecial(fecha, tipo, motivo);
     document.getElementById("form-bloqueo").reset();
     await cargarBloqueosAdmin();
+});
+
+async function cargarGaleriaAdmin() {
+    const lista = document.getElementById("lista-galeria-admin");
+    const fotos = await estudio.obtenerGaleria();
+    lista.innerHTML = fotos.length === 0 ? `<p class="hint">Usando fotos de muestra. Agregá tus propias fotos arriba.</p>` : "";
+
+    fotos.forEach(f => {
+        const div = document.createElement("div");
+        div.className = "admin-list-item";
+        div.innerHTML = `
+            <div><strong>${f.titulo || "Foto de galería"}</strong><br><small style="word-break:break-all;">${f.url.slice(0, 40)}...</small></div>
+            <button class="btn-cancel">Borrar</button>
+        `;
+        div.querySelector("button").addEventListener("click", async () => {
+            await estudio.eliminarFotoGaleria(f.id);
+            await cargarGaleriaAdmin();
+        });
+        lista.appendChild(div);
+    });
+}
+
+document.getElementById("form-galeria").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const url = document.getElementById("gal-url").value.trim();
+    const titulo = document.getElementById("gal-titulo").value.trim();
+    await estudio.agregarFotoGaleria(url, titulo);
+    document.getElementById("form-galeria").reset();
+    await cargarGaleriaAdmin();
 });
 
 // Inicializar todo el panel
@@ -304,3 +404,4 @@ inputFechaAdmin.addEventListener("change", () => suscribirTurnosFecha(inputFecha
 cargarServiciosAdmin();
 cargarProductosAdmin();
 cargarConfiguracionYBloqueos();
+cargarGaleriaAdmin();
